@@ -25,7 +25,7 @@ class Trie:
     def insert(self, word: str) -> None:
         curr = self.head
         for c in word:
-            if not curr.children[c]:
+            if not curr.children.get(c):
                 curr.children[c] = Node(c)
             curr = curr.children[c]
         curr.set_end()
@@ -33,7 +33,7 @@ class Trie:
     def search(self, word: str) -> bool:
         curr = self.head
         for c in word:
-            if not curr.children[c]:
+            if not curr.children.get(c):
                 return False
             curr = curr.children[c]
         return curr.f_is_end()
@@ -41,7 +41,7 @@ class Trie:
     def startsWith(self, prefix: str) -> bool:
         curr = self.head
         for c in prefix:
-            if not curr.children[c]:
+            if not curr.children.get(c):
                 return False
             curr = curr.children[c]
         return True
