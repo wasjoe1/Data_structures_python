@@ -7,17 +7,10 @@
 # This can be used in programs such as autocomplete, spellchecker, or even contains() methods.
 
 # Trie implementation
-# use a node?
-# None
-# |  \
-# "a" "b" => # if this is the end, all the nodes in next_char_list will be empty
-#             # if b is the end, is_end will be true
-
 class Node:
     def __init__(self, char):
-        self.curr_char = char
-        self.is_end = False
-        self.next_char_list = [False] * 26
+        self.is_end = False # no need character, since u already know the char
+        self.children = {} # use a dict => {c: node, ...}; better naming would be children
 
     def f_is_end(self): # cant be the same name as a variable
         return self.is_end
@@ -32,33 +25,25 @@ class Trie:
     def insert(self, word: str) -> None:
         curr = self.head
         for c in word:
-            # add the c into the layers, indicate a break at the last char
-            pos = ord(c) - ord("a") # only lowercase english letters
-            if not curr.next_char_list[pos]:
-                curr.next_char_list[pos] = Node(pos)
-            curr = curr.next_char_list[pos]
-        
-        # curr is the last node now
+            if not curr.children[c]:
+                curr.children[c] = Node(c)
+            curr = curr.children[c]
         curr.set_end()
 
     def search(self, word: str) -> bool:
-        # return true if the string is in the trie => need a indicator that the char is the end of the word
         curr = self.head
         for c in word:
-            if not curr.next_char_list[ord(c)-ord("a")]:
+            if not curr.children[c]:
                 return False
-            curr = curr.next_char_list[ord(c)-ord("a")]
-        
-        # check if its the end of the string
+            curr = curr.children[c]
         return curr.f_is_end()
 
     def startsWith(self, prefix: str) -> bool:
-        # return true if there is a string with this prefix
         curr = self.head
         for c in prefix:
-            if not curr.next_char_list[ord(c)-ord("a")]:
+            if not curr.children[c]:
                 return False
-            curr = curr.next_char_list[ord(c)-ord("a")]
+            curr = curr.children[c]
         return True
 
 def main():
