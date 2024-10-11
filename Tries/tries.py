@@ -57,5 +57,5 @@ def main():
     # param_3 = obj.startsWith(prefix)
     pass
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     main()
