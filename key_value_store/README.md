@@ -32,11 +32,11 @@ IllegalStateError is more inconvenient to implement as extra code is required to
 IllegalStateError is more explicit and better informs the developer
 
 2. **get() - return None or KeyError, if key does not exist**
-None is straightforward & easy to implement. aligns with expected behaviour of DS like dictionary
-None handles missing keys without wrapping calls in try-except blocks => code is cleaner
-None follows convention, as mentioned python dictionary get() returns None as well
-None is more performant, compared to raising an exception which is costly in terms of execution time
-KeyError requires explicit handling => more cumbersome, less clean code
-KeyError encourages proper handling, devs are ensured to not overlook cases/ logical errors in their code
-Overall, decide on None due to consistency across expected bhaviours of DS in python
-Since delete was handled gracefully as well without raising an exception, this shall be the approach
+- None is straightforward & easy to implement. aligns with expected behaviour of DS like dictionary
+- None handles missing keys without wrapping calls in try-except blocks => code is cleaner
+- None follows convention, as mentioned python dictionary get() returns None as well
+- None is more performant, compared to raising an exception which is costly in terms of execution time
+- KeyError requires explicit handling => more cumbersome, less clean code
+- KeyError encourages proper handling, devs are ensured to not overlook cases/ logical errors in their code
+- Overall, decide on None due to consistency across expected bhaviours of DS in python
+- Since delete was handled gracefully as well without raising an exception, this shall be the approach
