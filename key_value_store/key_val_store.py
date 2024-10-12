@@ -2,7 +2,6 @@
 
 # Key value store implementation
 # This key value store supports 3 basic functions: Begin, Commit & Rollback (definitions are described below)
-# 
 
 # Begin() - Starts a new transaction allowing user to perform multiple operations as a batch.
 # Changes made in this transaction are temporary until user either commits or roll them back
@@ -12,15 +11,10 @@
 # Rollback() - Cancels the current transaction, undoing all the changes made since the begin() call & reverting the key-value store
 # to the state it was in before the transaction began
 
-# Certain clarifications:
-# - if Rollback was called before Begin() was called, => im suggesting nothing occurs since no begin() created a chance for temp changes
-# - if commit() was called before begin() was called, => im suggesting that no new changes 
-# - if its already in transaction & begin() is called, continue to stay in transction
-
-# Description of my implementation:
-# transaction system will support nested transactions (i.e. T1 calls put (x, 1), T2 calls put (y, 2), rollback() is called, T2 is discarded but not T1)
-# supports, getting, putting and deleting values from the key value store
-# if no temp transaction was initiated, alteration actions done will be to the permanent key value store
+class IllegalStateError(Exception):
+    def __init__(self, msg="Illegal state for this operation"):
+        self.message = msg
+        super().__init__(self.message) # Exception __init__(self, *args)
 
 class key_value_store:
     
@@ -33,9 +27,9 @@ class key_value_store:
     
     def get(self, key):
         if self.has_temp_transaction():
-            return self.temp[-1][key]
+            return self.temp[-1].get(key)
         else:
-            return self.perm[key]
+            return self.perm.get(key)
 
     def put(self, key, value):
         if self.has_temp_transaction():
@@ -70,13 +64,95 @@ class key_value_store:
                 self.update_storage(self.temp[-1], self.perm)
             else:
                 self.update_storage(self.temp[-1], self.temp[-2])
+            self.temp.pop()
+        else:
+            raise IllegalStateError("Execute begin() before executing commit()")
     
     def rollback(self):
         if self.has_temp_transaction():
-            self.perm.pop()
+            self.temp.pop()
+        else:
+            raise IllegalStateError("Execute begin() before executing rollback()")
+
+def test_key_value_store():
+    count = 0
+    kv_store = key_value_store()
+
+    # TEST 1: Test put() and get() for permanent storage
+    kv_store.put("key1", "value1")
+    assert kv_store.get("key1") == "value1", "Failed to retrieve value from permanent storage"
+    print("test 1 passed")
+    count += 1
+
+    # TEST 2: Test delete() for permanent storage
+    kv_store.delete("key1")
+    assert kv_store.get("key1") is None, "Failed to delete value from permanent storage"
+    print("test 2 passed")
+    count += 1
+
+    # TEST 3: Test begin(), put(), and get() for temporary transactions
+    kv_store.begin()
+    kv_store.put("key2", "value2")
+    assert kv_store.get("key2") == "value2", "Failed to retrieve value from temporary transaction"
+    print("test 3 passed")
+    count += 1
+    
+    # TEST 4: Test rollback()
+    kv_store.rollback()
+    assert kv_store.get("key2") is None, "Rollback did not remove the temporary value"
+    print("test 4 passed")
+    count += 1
+
+    # TEST 5: Test begin() and commit() for permanent storage updates
+    kv_store.put("key3", "value3")
+    kv_store.begin()
+    kv_store.put("key3", "temp_value3")
+    kv_store.commit()
+    assert kv_store.get("key3") == "temp_value3", "Commit did not update the permanent value"
+    print("test 5 passed")
+    count += 1
+
+    # TEST 6: Test multiple begin() and rollback()
+    kv_store.begin()
+    kv_store.put("key4", "temp_value4")
+    kv_store.begin()
+    kv_store.put("key4", "temp_value4_updated")
+    kv_store.rollback()  # Should rollback the last temp transaction
+    assert kv_store.get("key4") == "temp_value4", "Rollback did not work as expected"
+    print("test 6 passed")
+    count += 1
+
+    # TEST 7: Test commit() after nested transactions
+    kv_store.commit()
+    assert kv_store.get("key4") == "temp_value4", "Commit did not finalize the value correctly"
+    print("test 7 passed")
+    count += 1
+
+    # TEST 8: Test IllegalStateError on commit() without begin()
+    try:
+        kv_store.commit()
+    except IllegalStateError as e:
+        assert str(e) == "Execute begin() before executing commit()", "Failed to raise IllegalStateError on commit without begin()"
+        print("test 8 passed")
+        count += 1
+
+    # TEST 9: Test IllegalStateError on rollback() without begin()
+    try:
+        kv_store.rollback()
+    except IllegalStateError as e:
+        assert str(e) == "Execute begin() before executing rollback()", "Failed to raise IllegalStateError on rollback without begin()"
+        print("test 9 passed")
+        count += 1
+
+    print(f"{count}/9 tests passed")
+    if count == 9:
+        print("All tests passed!")
+    else:
+        print("Some tests failed :(")
 
 def main():
     # code to test key value store
+    test_key_value_store()
     pass
 
 if __name__ == "__main__":
